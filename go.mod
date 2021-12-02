@@ -17,3 +17,8 @@ require (
 	go.etcd.io/bbolt v1.3.6 // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 )
+
+replace (
+	go.sancus.dev/core => ../../../go.sancus.dev/core
+	go.sancus.dev/fs => ../../../go.sancus.dev/fs
+)
