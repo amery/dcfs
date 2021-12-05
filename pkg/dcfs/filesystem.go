@@ -6,6 +6,8 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"go.sancus.dev/fs"
+
 	"github.com/armon/go-radix"
 	"github.com/timshannon/bolthold"
 )
@@ -13,6 +15,11 @@ import (
 const (
 	DbFilename        = "dcfs.db"
 	DbFilePermissions = 0644
+)
+
+// Interfaces
+var (
+	_ fs.FS = (*Filesystem)(nil)
 )
 
 type Filesystem struct {
