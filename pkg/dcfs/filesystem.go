@@ -9,7 +9,6 @@ import (
 
 	"go.sancus.dev/fs"
 
-	"github.com/armon/go-radix"
 	"github.com/timshannon/bolthold"
 )
 
@@ -26,10 +25,10 @@ var (
 
 type Filesystem struct {
 	datadir string
-	tree    *radix.Tree
 	db      *bolthold.Store
 	mu      sync.RWMutex
 	wg      sync.WaitGroup
+	root    *Directory
 
 	ctx       context.Context
 	cancel    context.CancelFunc
@@ -85,7 +84,6 @@ func New(ctx context.Context, datadir string) (*Filesystem, error) {
 
 	m := &Filesystem{
 		datadir: datadir,
-		tree:    radix.New(),
 		db:      db,
 
 		ctx:    ctx,
