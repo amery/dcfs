@@ -22,6 +22,22 @@ type Directory struct {
 func (dir *Directory) Inode() uint64  { return dir.entry.Inode }
 func (dir *Directory) Type() NodeType { return dir.entry.Content.Type() }
 
+func (dir *Directory) Open() (fs.File, error) {
+	return nil, syscall.ENOSYS
+}
+
+func (fsys *Filesystem) locate(name string) (Node, error) {
+	return nil, syscall.ENOSYS
+}
+
 func (fsys *Filesystem) Open(name string) (fs.File, error) {
-	return nil, syscall.ENOENT
+	if name == "." {
+		return fsys.root.Open()
+	} else if !fs.ValidPath(name) {
+		return nil, syscall.EINVAL
+	} else if node, err := fsys.locate(name); err != nil {
+		return nil, err
+	} else {
+		return node.Open()
+	}
 }

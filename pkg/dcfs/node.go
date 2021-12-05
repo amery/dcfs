@@ -1,5 +1,9 @@
 package dcfs
 
+import (
+	"io/fs"
+)
+
 type NodeType int
 
 const (
@@ -12,6 +16,7 @@ const (
 type Node interface {
 	Inode() uint64
 	Type() NodeType
+	Open() (fs.File, error)
 }
 
 type NodeContent interface {
