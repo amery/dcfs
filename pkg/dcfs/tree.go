@@ -32,12 +32,20 @@ func (fsys *Filesystem) locate(name string) (Node, error) {
 
 func (fsys *Filesystem) Open(name string) (fs.File, error) {
 	if name == "." {
-		return fsys.root.Open()
+		// special case
+		if f, err := fsys.root.Open(); err != nil {
+			return nil, &fs.PathError{"open", name, err}
+		} else {
+			return f, nil
+		}
+
 	} else if !fs.ValidPath(name) {
-		return nil, syscall.EINVAL
+		return nil, &fs.PathError{"open", name, syscall.EINVAL}
 	} else if node, err := fsys.locate(name); err != nil {
-		return nil, err
+		return nil, &fs.PathError{"open", name, err}
+	} else if f, err := node.Open(); err != nil {
+		return nil, &fs.PathError{"open", name, err}
 	} else {
-		return node.Open()
+		return f, nil
 	}
 }
