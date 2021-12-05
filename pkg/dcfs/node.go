@@ -41,8 +41,6 @@ type NodeChild struct {
 }
 
 //
-type Blake3Hash []byte
-
 type NodeFileContent struct {
 	Versions []Blake3Hash
 }
