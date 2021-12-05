@@ -2,6 +2,7 @@ package dcfs
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
@@ -13,8 +14,9 @@ import (
 )
 
 const (
-	DbFilename        = "dcfs.db"
-	DbFilePermissions = 0644
+	DbFilename         = "dcfs.db"
+	DbFilePermissions  = 0644
+	DataDirPermissions = 0755
 )
 
 // Interfaces
@@ -59,10 +61,16 @@ func (m *Filesystem) Close() error {
 
 func New(ctx context.Context, datadir string) (*Filesystem, error) {
 
-	// database
 	if datadir == "" {
 		datadir = "."
 	}
+
+	// make sure datadir exists
+	if err := os.MkdirAll(datadir, DataDirPermissions); err != nil {
+		return nil, err
+	}
+
+	// database
 	filename := filepath.Join(datadir, DbFilename)
 	db, err := bolthold.Open(filename, DbFilePermissions, nil)
 	if err != nil {
