@@ -6,17 +6,18 @@ import (
 )
 
 var (
-	_ Node = (*Archive)(nil)
+	_ Node = (*ArchiveNode)(nil)
 )
 
-type Archive struct {
-	entry *NodeEntry
+// Archive
+type ArchiveNode struct {
+	record *NodeRecord
 }
 
 // Node
-func (file *Archive) Inode() uint64  { return file.entry.Inode }
-func (file *Archive) Type() NodeType { return file.entry.Content.Type() }
+func (node *ArchiveNode) Inode() uint64  { return node.record.Inode }
+func (node *ArchiveNode) Type() NodeType { return node.record.Type }
 
-func (file *Archive) Open() (fs.File, error) {
+func (node *ArchiveNode) Open() (fs.File, error) {
 	return nil, syscall.ENOSYS
 }

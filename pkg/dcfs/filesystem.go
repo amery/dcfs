@@ -28,7 +28,7 @@ type Filesystem struct {
 	db      *bolthold.Store
 	mu      sync.RWMutex
 	wg      sync.WaitGroup
-	root    *Directory
+	root    *DirectoryNode
 
 	ctx       context.Context
 	cancel    context.CancelFunc

@@ -2,6 +2,9 @@ package dcfs
 
 import (
 	"io/fs"
+	"syscall"
+
+	"github.com/armon/go-radix"
 )
 
 type NodeType int
@@ -19,42 +22,55 @@ type Node interface {
 	Open() (fs.File, error)
 }
 
-type NodeContent interface {
-	Type() NodeType
+func (record *NodeRecord) NewNode() (Node, error) {
+	switch record.Type {
+	case NodeTypeDirectory:
+		node := &DirectoryNode{
+			record: record,
+			tree:   radix.New(),
+		}
+		return node, nil
+	case NodeTypeFile:
+		node := &FileNode{
+			record: record,
+		}
+		return node, nil
+	case NodeTypeArchive:
+		node := &ArchiveNode{
+			record: record,
+		}
+		return node, nil
+	default:
+		return nil, syscall.EINVAL
+	}
 }
 
-type NodeEntry struct {
-	Inode   uint64 `boltholdKey:"Inode"`
-	Content NodeContent
+func (fsys *Filesystem) newNode(inode uint64, typ NodeType) (Node, error) {
+	record := &NodeRecord{
+		Inode: inode,
+		Type:  typ,
+	}
+
+	if _, err := fsys.putRecord(record); err != nil {
+		return nil, err
+	}
+
+	if node, err := record.NewNode(); err != nil {
+		fsys.deleteRecord(record)
+		return nil, err
+	} else {
+		return node, nil
+	}
 }
 
-//
-type NodeDirectoryContent struct {
-	Children []NodeChild
+func (fsys *Filesystem) newDirectory(inode uint64) (Node, error) {
+	return fsys.newNode(inode, NodeTypeDirectory)
 }
 
-func (_ NodeDirectoryContent) Type() NodeType { return NodeTypeDirectory }
-
-type NodeChild struct {
-	Inode uint64 `boltholdIndex:"Inode"`
-	Name  string
+func (fsys *Filesystem) newFile(inode uint64) (Node, error) {
+	return fsys.newNode(inode, NodeTypeFile)
 }
 
-//
-type NodeFileContent struct {
-	Versions []Blake3Hash
-}
-
-func (_ NodeFileContent) Type() NodeType { return NodeTypeFile }
-
-//
-type NodeArchiveContent struct {
-	Entries []NodeArchiveEntry
-}
-
-func (_ NodeArchiveContent) Type() NodeType { return NodeTypeArchive }
-
-type NodeArchiveEntry struct {
-	Hash Blake3Hash
-	Name string
+func (fsys *Filesystem) newArchive(inode uint64) (Node, error) {
+	return fsys.newNode(inode, NodeTypeArchive)
 }
