@@ -9,6 +9,7 @@ import (
 
 	"go.sancus.dev/fs"
 
+	"github.com/ancientlore/go-avltree"
 	"github.com/timshannon/bolthold"
 )
 
@@ -27,9 +28,10 @@ type Filesystem struct {
 	datadir string
 	db      *bolthold.Store
 	mu      sync.RWMutex
-	wg      sync.WaitGroup
 	root    *DirectoryNode
+	nodes   *avltree.Tree
 
+	wg        sync.WaitGroup
 	ctx       context.Context
 	cancel    context.CancelFunc
 	cancelled int32
@@ -88,6 +90,11 @@ func New(ctx context.Context, datadir string) (*Filesystem, error) {
 
 		ctx:    ctx,
 		cancel: cancel,
+	}
+
+	if err := m.init(); err != nil {
+		defer m.Close()
+		return nil, err
 	}
 
 	return m, nil

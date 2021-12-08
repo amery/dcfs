@@ -3,6 +3,7 @@ module github.com/amery/dcfs
 go 1.17
 
 require (
+	github.com/ancientlore/go-avltree v1.0.2
 	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310
 	github.com/spf13/cobra v1.2.1
 	github.com/timshannon/bolthold v0.0.0-20210913165410-232392fc8a6a
