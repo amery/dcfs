@@ -80,6 +80,15 @@ func (fsys *Filesystem) putRecord(node *NodeRecord) (uint64, error) {
 	}
 }
 
+func (fsys *Filesystem) appendRecordContent(parent *NodeRecord, child interface{}) error {
+	parent.Content = append(parent.Content, child)
+	if err := fsys.updateRecord(parent); err != nil {
+		parent.Content = parent.Content[:len(parent.Content)-1]
+		return err
+	}
+	return nil
+}
+
 func (fsys *Filesystem) updateRecord(node *NodeRecord) error {
 	return fsys.db.Update(node.Inode, node)
 }

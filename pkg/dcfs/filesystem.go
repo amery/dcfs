@@ -23,7 +23,8 @@ const (
 
 // Interfaces
 var (
-	_ fs.FS = (*Filesystem)(nil)
+	_ fs.FS      = (*Filesystem)(nil)
+	_ fs.MkdirFS = (*Filesystem)(nil)
 )
 
 type Filesystem struct {

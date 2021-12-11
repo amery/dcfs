@@ -2,6 +2,7 @@ package dcfs
 
 import (
 	"context"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"log"
@@ -98,6 +99,32 @@ func (node *DirectoryNode) String() string {
 	return node.record.String()
 }
 
+func (node *DirectoryNode) mkdir(fsys *Filesystem, name string) (Node, error) {
+	log.Printf("%+n: <%s> %s:%q", errors.Here(), node, "name", name)
+
+	node.mu.Lock()
+	defer node.mu.Unlock()
+
+	if _, ok := node.tree.Get(name); ok {
+		return nil, syscall.EEXIST
+	} else if child, err := fsys.newDirectory(0); err != nil {
+		return nil, err
+	} else {
+		entry := &DirectoryEntry{
+			Inode: child.Inode(),
+			Name:  name,
+		}
+
+		if err := fsys.appendRecordContent(node.record, entry); err != nil {
+			fsys.deleteRecord(child.record)
+			return nil, err
+		}
+
+		node.tree.Insert(name, child)
+		return child, nil
+	}
+}
+
 func (node *DirectoryNode) locate(fsys *Filesystem, name string) (Node, string, string, error) {
 	log.Printf("%+n: <%s> %s:%q", errors.Here(), node, "name", name)
 
@@ -178,4 +205,8 @@ func (node *DirectoryNode) Open() (fs.File, error) {
 	log.Printf("%+n: <%s> -> %p", errors.Here(), node, dir)
 
 	return dir, nil
+}
+
+func init() {
+	gob.Register(&DirectoryEntry{})
 }

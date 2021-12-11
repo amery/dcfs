@@ -2,6 +2,7 @@ package dcfs
 
 import (
 	"log"
+	"strings"
 	"syscall"
 
 	"go.sancus.dev/core/errors"
@@ -80,5 +81,25 @@ func (fsys *Filesystem) Open(name string) (fs.File, error) {
 		return nil, &fs.PathError{"open", name, err}
 	} else {
 		return f, nil
+	}
+}
+
+func (fsys *Filesystem) Mkdir(name string, perm fs.FileMode) error {
+	log.Printf("%+n: %s:%q", errors.Here(), "name", name)
+
+	if !fs.ValidPath(name) {
+		return fs.AsPathError("mkdir", name, syscall.EINVAL)
+	} else if n, _, p1, err := fsys.locateBest(name); p1 == "" {
+		return fs.AsPathError("mkdir", name, syscall.EEXIST)
+	} else if err != syscall.ENOENT {
+		return fs.AsPathError("mkdir", name, err)
+	} else if i := strings.IndexRune(p1, '/'); i >= 0 {
+		return fs.AsPathError("mkdir", name, syscall.ENOENT)
+	} else if dir, ok := n.(*DirectoryNode); !ok {
+		return fs.AsPathError("mkdir", name, syscall.ENOTDIR)
+	} else if _, err := dir.mkdir(fsys, p1); err != nil {
+		return fs.AsPathError("mkdir", name, err)
+	} else {
+		return nil
 	}
 }
