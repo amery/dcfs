@@ -1,6 +1,8 @@
 package dcfs
 
 import (
+	"fmt"
+
 	bh "github.com/timshannon/bolthold"
 )
 
@@ -8,6 +10,16 @@ type NodeRecord struct {
 	Inode   uint64 `boltholdKey:"Inode"`
 	Type    NodeType
 	Content []interface{}
+}
+
+func (record *NodeRecord) String() string {
+	s := fmt.Sprintf("node:%v/%s", record.Inode, record.Type)
+
+	if l := len(record.Content); l > 0 {
+		s += fmt.Sprintf(" [%v]%T", l, record.Content[0])
+	}
+
+	return s
 }
 
 func (fsys *Filesystem) getRecord(inode uint64) (*NodeRecord, error) {

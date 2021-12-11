@@ -1,6 +1,7 @@
 package dcfs
 
 import (
+	"fmt"
 	"io/fs"
 	"log"
 	"syscall"
@@ -18,6 +19,16 @@ const (
 	NodeTypeFile
 	NodeTypeArchive
 )
+
+func (t NodeType) String() string {
+	const mnemonic = "?DFA"
+
+	if t >= 0 && int(t) < len(mnemonic) {
+		return string(mnemonic[t])
+	} else {
+		return fmt.Sprintf("%v", int(t))
+	}
+}
 
 type Node interface {
 	Inode() uint64
