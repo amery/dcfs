@@ -7,7 +7,7 @@ require (
 	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310
 	github.com/spf13/cobra v1.2.1
 	github.com/timshannon/bolthold v0.0.0-20210913165410-232392fc8a6a
-	go.sancus.dev/fs v0.0.0-20211204203621-0c00a11b6753
+	go.sancus.dev/fs v0.0.0-20211213010324-5b69d23ff3a9
 )
 
 require (

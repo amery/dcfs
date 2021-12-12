@@ -2,9 +2,11 @@ package dcfs
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"log"
 	"sync"
-	"syscall"
+	"time"
 
 	"github.com/armon/go-radix"
 
@@ -12,8 +14,62 @@ import (
 )
 
 var (
-	_ Node = (*DirectoryNode)(nil)
+	_ fs.FileInfo = dirinfo{}
+	_ fs.File     = (*Directory)(nil)
+	_ Node        = (*DirectoryNode)(nil)
 )
+
+// fs.FileInfo
+type dirinfo struct {
+	basename string
+	node     *DirectoryNode
+}
+
+func (fi dirinfo) Name() string {
+	return fi.basename
+}
+
+func (fi dirinfo) Size() int64 {
+	return 0
+}
+
+func (fi dirinfo) Mode() fs.FileMode {
+	return fs.ModeDir | 0755
+}
+
+func (fi dirinfo) ModTime() time.Time {
+	return time.Time{}
+}
+
+func (fi dirinfo) IsDir() bool {
+	return true
+}
+
+func (fi dirinfo) Sys() interface{} {
+	return fi.node
+}
+
+// Directory
+type Directory struct {
+	basename string
+	node     *DirectoryNode
+}
+
+func (dir *Directory) String() string {
+	return fmt.Sprintf("%s name=%q ptr=%p", dir.node, dir.basename, dir)
+}
+
+func (dir *Directory) Close() error {
+	return nil
+}
+
+func (dir *Directory) Read(b []byte) (int, error) {
+	return 0, io.EOF
+}
+
+func (dir *Directory) Stat() (fs.FileInfo, error) {
+	return dirinfo{dir.basename, dir.node}, nil
+}
 
 // DirectoryNode
 type DirectoryEntry struct {
@@ -73,5 +129,6 @@ func (node *DirectoryNode) Inode() uint64  { return node.record.Inode }
 func (node *DirectoryNode) Type() NodeType { return node.record.Type }
 
 func (node *DirectoryNode) Open() (fs.File, error) {
-	return nil, syscall.ENOSYS
+	dir := &Directory{"", node}
+	return dir, nil
 }
