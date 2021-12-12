@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/armon/go-radix"
@@ -78,13 +79,41 @@ type DirectoryEntry struct {
 }
 
 type DirectoryNode struct {
-	mu     sync.Mutex
+	mu     sync.RWMutex
 	record *NodeRecord
 	tree   *radix.Tree
 }
 
 func (node *DirectoryNode) String() string {
 	return node.record.String()
+}
+
+func (node *DirectoryNode) locate(fsys *Filesystem, name string) (Node, string, string, error) {
+	node.mu.RLock()
+	defer node.mu.RUnlock()
+
+	if node.tree == nil {
+		// directory not yet populated, try again later
+		return nil, "", name, syscall.EAGAIN
+	} else if name == "" || name == "." {
+		// exact dir match
+		return node, name, "", nil
+	} else if p0, v, ok := node.tree.LongestPrefix(name); !ok {
+		// no match
+		return node, "", name, syscall.ENOENT
+	} else if next, ok := v.(Node); !ok {
+		// can't happen
+		return node, "", name, syscall.EINVAL
+	} else {
+		var p1 string
+
+		if l := len(p0); len(name) > l {
+			// partial match
+			p1 = name[l+1:]
+		}
+
+		return next, p0, p1, nil
+	}
 }
 
 func (node *DirectoryNode) populate(fsys *Filesystem, recursive bool) {
