@@ -11,6 +11,7 @@ import (
 
 	"github.com/armon/go-radix"
 
+	"go.sancus.dev/core/errors"
 	"go.sancus.dev/fs"
 )
 
@@ -26,27 +27,37 @@ type dirinfo struct {
 	node     *DirectoryNode
 }
 
+func (fi dirinfo) String() string {
+	return fmt.Sprintf("%T:%q %s", fi, fi.basename, fi.node)
+}
+
 func (fi dirinfo) Name() string {
+	log.Printf("%+n: <%s>", errors.Here(), fi)
 	return fi.basename
 }
 
 func (fi dirinfo) Size() int64 {
+	log.Printf("%+n: <%s>", errors.Here(), fi)
 	return 0
 }
 
 func (fi dirinfo) Mode() fs.FileMode {
+	log.Printf("%+n: <%s>", errors.Here(), fi)
 	return fs.ModeDir | 0755
 }
 
 func (fi dirinfo) ModTime() time.Time {
+	log.Printf("%+n: <%s>", errors.Here(), fi)
 	return time.Time{}
 }
 
 func (fi dirinfo) IsDir() bool {
+	log.Printf("%+n: <%s>", errors.Here(), fi)
 	return true
 }
 
 func (fi dirinfo) Sys() interface{} {
+	log.Printf("%+n: <%s>", errors.Here(), fi)
 	return fi.node
 }
 
@@ -61,14 +72,17 @@ func (dir *Directory) String() string {
 }
 
 func (dir *Directory) Close() error {
+	log.Printf("%+n: <%s>", errors.Here(), dir)
 	return nil
 }
 
 func (dir *Directory) Read(b []byte) (int, error) {
+	log.Printf("%+n: <%s> buf:%v", errors.Here(), dir, len(b))
 	return 0, io.EOF
 }
 
 func (dir *Directory) Stat() (fs.FileInfo, error) {
+	log.Printf("%+n: <%s>", errors.Here(), dir)
 	return dirinfo{dir.basename, dir.node}, nil
 }
 
@@ -89,6 +103,8 @@ func (node *DirectoryNode) String() string {
 }
 
 func (node *DirectoryNode) locate(fsys *Filesystem, name string) (Node, string, string, error) {
+	log.Printf("%+n: <%s> %s:%q", errors.Here(), node, "name", name)
+
 	node.mu.RLock()
 	defer node.mu.RUnlock()
 
@@ -112,11 +128,14 @@ func (node *DirectoryNode) locate(fsys *Filesystem, name string) (Node, string, 
 			p1 = name[l+1:]
 		}
 
+		log.Printf("%+n: <%s> %s:%q %s:%s -> <%s>", errors.Here(), node, "p0", p0, "p1", p1, next)
 		return next, p0, p1, nil
 	}
 }
 
 func (node *DirectoryNode) populate(fsys *Filesystem, recursive bool) {
+	log.Printf("%+n: <%s> %s:%v", errors.Here(), node, "recursive", recursive)
+
 	node.mu.Lock()
 	defer node.mu.Unlock()
 
@@ -159,5 +178,8 @@ func (node *DirectoryNode) Type() NodeType { return node.record.Type }
 
 func (node *DirectoryNode) Open() (fs.File, error) {
 	dir := &Directory{"", node}
+
+	log.Printf("%+n: <%s> -> %p", errors.Here(), node, dir)
+
 	return dir, nil
 }

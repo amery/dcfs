@@ -9,6 +9,8 @@ import (
 
 	"github.com/ancientlore/go-avltree"
 	"github.com/timshannon/bolthold"
+
+	"go.sancus.dev/core/errors"
 )
 
 type NodeType int
@@ -37,6 +39,8 @@ type Node interface {
 }
 
 func (record *NodeRecord) NewNode() (Node, error) {
+	log.Printf("%+n: %s:%v", errors.Here(), "inode", record.Inode)
+
 	switch record.Type {
 	case NodeTypeDirectory:
 		node := &DirectoryNode{
@@ -59,6 +63,8 @@ func (record *NodeRecord) NewNode() (Node, error) {
 }
 
 func (fsys *Filesystem) newNode(inode uint64, typ NodeType) (Node, error) {
+	log.Printf("%+n: %s:%v %s:%v", errors.Here(), "inode", inode, "type", typ)
+
 	record := &NodeRecord{
 		Inode: inode,
 		Type:  typ,
@@ -101,6 +107,7 @@ func (fsys *Filesystem) newArchive(inode uint64) (*ArchiveNode, error) {
 }
 
 func (fsys *Filesystem) init() error {
+	log.Printf("%+n", errors.Here())
 	fsys.nodes = avltree.New(compareNode, 0)
 
 	root, err := fsys.getNode(1)
@@ -121,6 +128,8 @@ func (fsys *Filesystem) init() error {
 }
 
 func (fsys *Filesystem) getNode(inode uint64) (Node, error) {
+	log.Printf("%+n: %s:%v", errors.Here(), "inode", inode)
+
 	fsys.mu.Lock()
 	defer fsys.mu.Unlock()
 

@@ -2,11 +2,13 @@ package dcfs
 
 import (
 	"context"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
 
+	"go.sancus.dev/core/errors"
 	"go.sancus.dev/fs"
 
 	"github.com/ancientlore/go-avltree"
@@ -38,6 +40,8 @@ type Filesystem struct {
 }
 
 func (m *Filesystem) spawn(fn func(ctx context.Context, fs *Filesystem)) {
+	log.Printf("%+n", errors.Here())
+
 	if fn != nil && m.cancelled == 0 {
 		m.wg.Add(1)
 		go func() {
@@ -48,6 +52,8 @@ func (m *Filesystem) spawn(fn func(ctx context.Context, fs *Filesystem)) {
 }
 
 func (m *Filesystem) Cancel() {
+	log.Printf("%+n", errors.Here())
+
 	if atomic.CompareAndSwapInt32(&m.cancelled, 0, 1) {
 		// just once
 		m.cancel()
@@ -55,12 +61,15 @@ func (m *Filesystem) Cancel() {
 }
 
 func (m *Filesystem) Close() error {
+	log.Printf("%+n", errors.Here())
+
 	m.Cancel()
 	m.wg.Wait()
 	return m.db.Close()
 }
 
 func New(ctx context.Context, datadir string) (*Filesystem, error) {
+	log.Printf("%+n: %s:%q", errors.Here(), "datadir", datadir)
 
 	if datadir == "" {
 		datadir = "."

@@ -1,8 +1,11 @@
 package bucket
 
 import (
+	"log"
+
 	"gopkg.in/yaml.v3"
 
+	"go.sancus.dev/core/errors"
 	"go.sancus.dev/fs"
 )
 
@@ -16,6 +19,8 @@ type Bucket struct {
 }
 
 func (m *Bucket) Load(fsys fs.FS) error {
+	log.Printf("%+n", errors.Here())
+
 	buf, err := fs.ReadFile(fsys, BucketFileName)
 	if err != nil {
 		return err
@@ -25,6 +30,8 @@ func (m *Bucket) Load(fsys fs.FS) error {
 }
 
 func (m *Bucket) Commit(fsys fs.FS) error {
+	log.Printf("%+n", errors.Here())
+
 	buf, err := yaml.Marshal(m)
 	if err != nil {
 		return err
@@ -34,6 +41,7 @@ func (m *Bucket) Commit(fsys fs.FS) error {
 }
 
 func New(fsys fs.FS) (*Bucket, error) {
+	log.Printf("%+n: %s", errors.Here(), fsys)
 
 	m := &Bucket{}
 

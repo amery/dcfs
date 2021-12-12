@@ -2,9 +2,11 @@ package scan
 
 import (
 	"context"
+	"log"
 	"sync"
 	"sync/atomic"
 
+	"go.sancus.dev/core/errors"
 	"go.sancus.dev/fs"
 )
 
@@ -38,6 +40,8 @@ func NewScanner(ctx context.Context) (*Scanner, error) {
 }
 
 func (m *Scanner) Cancel(err error) {
+	log.Printf("%+n", errors.Here())
+
 	if atomic.CompareAndSwapUint32(&m.cancelled, 0, 1) {
 		// once
 		m.cancel()
@@ -46,6 +50,8 @@ func (m *Scanner) Cancel(err error) {
 }
 
 func (m *Scanner) Spawn(f func(context.Context)) {
+	log.Printf("%+n", errors.Here())
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -57,11 +63,15 @@ func (m *Scanner) Spawn(f func(context.Context)) {
 }
 
 func (m *Scanner) Wait() error {
+	log.Printf("%+n", errors.Here())
+
 	m.wg.Wait()
 	return m.err
 }
 
 func (m *Scanner) Scan(ctx context.Context, fsys fs.FS, dir, name string) error {
+	log.Printf("%+n: %s:%q", errors.Here(), "name", name)
+
 	bkt, err := m.Bucket(fsys, dir)
 	if err != nil {
 		return err
@@ -88,6 +98,7 @@ func (m *Scanner) Scan(ctx context.Context, fsys fs.FS, dir, name string) error 
 }
 
 func (m *Scanner) Close() error {
+	log.Printf("%+n", errors.Here())
 	m.Cancel(nil)
 
 	return m.Wait()

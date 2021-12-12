@@ -2,8 +2,10 @@ package scan
 
 import (
 	"context"
+	"log"
 	"syscall"
 
+	"go.sancus.dev/core/errors"
 	"go.sancus.dev/fs"
 
 	"github.com/amery/dcfs/pkg/bucket"
@@ -11,6 +13,8 @@ import (
 
 func (m *Node) getBucketNode(dir string) (*Node, error) {
 	var bkt *bucket.Bucket
+
+	log.Printf("%+n: %s %s:%q", errors.Here(), m.fsys, "dir", dir)
 
 	// find or create subnode
 	child, err := m.getNode(dir)
@@ -31,6 +35,8 @@ func (m *Node) getBucketNode(dir string) (*Node, error) {
 }
 
 func (m *Node) Commit() error {
+	log.Printf("%+n", errors.Here())
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -38,15 +44,20 @@ func (m *Node) Commit() error {
 }
 
 func (m *Node) commit() error {
+	log.Printf("%+n", errors.Here())
+
 	return m.bucket.Commit(m.fsys)
 }
 
 func (m *Node) put() *Node {
 	m.count++
+	log.Printf("%+n: %s:%v", errors.Here(), "count", m.count)
 	return m
 }
 
 func (m *Node) pop() bool {
+	log.Printf("%+n: %s:%v", errors.Here(), "count", m.count)
+
 	m.count--
 	if m.count <= 0 {
 		m.count = 0
@@ -57,6 +68,8 @@ func (m *Node) pop() bool {
 }
 
 func (m *Node) Pop() bool {
+	log.Printf("%+n", errors.Here())
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -64,6 +77,8 @@ func (m *Node) Pop() bool {
 }
 
 func (m *Node) close() error {
+	log.Printf("%+n", errors.Here())
+
 	if m.pop() {
 		return m.commit()
 	}
@@ -72,6 +87,8 @@ func (m *Node) close() error {
 }
 
 func (m *Node) Close() error {
+	log.Printf("%+n", errors.Here())
+
 	if m.Pop() {
 		return m.Commit()
 	}
@@ -80,10 +97,14 @@ func (m *Node) Close() error {
 }
 
 func (m *Node) Add(ctx context.Context, name string) error {
+	log.Printf("%+n: %s:%q", errors.Here(), "name", name)
+
 	return syscall.ENOSYS
 }
 
 func (m *Scanner) Bucket(fsys fs.FS, dir string) (*Node, error) {
+	log.Printf("%+n: %s %s:%q", errors.Here(), fsys, "dir", dir)
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
