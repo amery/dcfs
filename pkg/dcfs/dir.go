@@ -27,6 +27,10 @@ type DirectoryNode struct {
 	tree   *radix.Tree
 }
 
+func (node *DirectoryNode) String() string {
+	return node.record.String()
+}
+
 func (node *DirectoryNode) populate(fsys *Filesystem, recursive bool) {
 	node.mu.Lock()
 	defer node.mu.Unlock()
