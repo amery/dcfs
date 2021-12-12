@@ -1,13 +1,13 @@
 package dcfs
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"log"
 	"syscall"
 
 	"github.com/ancientlore/go-avltree"
-	"github.com/armon/go-radix"
 	"github.com/timshannon/bolthold"
 )
 
@@ -41,7 +41,6 @@ func (record *NodeRecord) NewNode() (Node, error) {
 	case NodeTypeDirectory:
 		node := &DirectoryNode{
 			record: record,
-			tree:   radix.New(),
 		}
 		return node, nil
 	case NodeTypeFile:
@@ -100,6 +99,10 @@ func (fsys *Filesystem) init() error {
 
 	if err == nil {
 		fsys.root = root.(*DirectoryNode)
+		fsys.root.populate(fsys, false)
+		fsys.spawn(func(_ context.Context, _ *Filesystem) {
+			fsys.root.populate(fsys, true)
+		})
 	}
 
 	return err
