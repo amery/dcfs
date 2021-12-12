@@ -1,19 +1,28 @@
 package dcfs
 
 import (
+	"log"
 	"syscall"
 
+	"go.sancus.dev/core/errors"
 	"go.sancus.dev/fs"
 )
 
 // Tree
 func (fsys *Filesystem) locateBest(name string) (Node, string, string, error) {
+	log.Printf("%+v: %s:%q", errors.Here(), "name", name)
 
 	node := fsys.root
 	p0, p1 := "", name
 
 	for {
-		next, _, s1, err := node.locate(fsys, p1)
+		log.Printf("%+v: <%s> %s:%q %s:%q", errors.Here(), node,
+			"p0", p0, "p1", p1)
+
+		next, s0, s1, err := node.locate(fsys, p1)
+
+		log.Printf("%+v: <%s> %s:%q %s:%q: %s", errors.Here(), next,
+			"s0", s0, "s1", s1, err)
 
 		if err == syscall.EAGAIN {
 			// not populated yet. retry
@@ -40,6 +49,7 @@ func (fsys *Filesystem) locateBest(name string) (Node, string, string, error) {
 }
 
 func (fsys *Filesystem) locate(name string) (Node, error) {
+	log.Printf("%+n: %s:%q", errors.Here(), "name", name)
 
 	node, _, extra, err := fsys.locateBest(name)
 
@@ -52,6 +62,7 @@ func (fsys *Filesystem) locate(name string) (Node, error) {
 }
 
 func (fsys *Filesystem) Open(name string) (fs.File, error) {
+	log.Printf("%+n: %s:%q", errors.Here(), "name", name)
 
 	if name == "." {
 		// special case

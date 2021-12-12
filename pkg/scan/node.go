@@ -1,12 +1,14 @@
 package scan
 
 import (
+	"log"
 	"strings"
 	"sync"
 	"syscall"
 
 	"github.com/armon/go-radix"
 
+	"go.sancus.dev/core/errors"
 	"go.sancus.dev/fs"
 
 	"github.com/amery/dcfs/pkg/bucket"
@@ -39,6 +41,8 @@ func (m *Node) getNode(dir string) (*Node, error) {
 
 		best, v, ok := m.tree.LongestPrefix(dir)
 		if !ok {
+			log.Printf("%+n: %s %s:%q %s", errors.Here(), m.fsys,
+				"dir", dir, "MISS")
 			break
 		}
 
@@ -50,6 +54,9 @@ func (m *Node) getNode(dir string) (*Node, error) {
 		}
 
 		extra := strings.TrimPrefix(best, dir)
+
+		log.Printf("%+n: %s %s:%q %s:%q %s:%q", errors.Here(), m.fsys,
+			"dir", dir, "best", best, "extra", extra)
 
 		if extra == "" {
 			// match
@@ -71,6 +78,8 @@ func (m *Node) getNode(dir string) (*Node, error) {
 }
 
 func (m *Node) split(dir string) (*Node, error) {
+	log.Printf("%+n: %s %s:%q", errors.Here(), m.fsys, "dir", dir)
+
 	fsys, err := fs.Sub(m.fsys, dir)
 	if err != nil {
 		return nil, err
@@ -99,6 +108,9 @@ func (m *Node) split(dir string) (*Node, error) {
 		if extra != "" && extra[0] == '/' {
 			extra = extra[1:] // remove leading '/'
 
+			log.Printf("%+n: %s %s:%q %s:%q %s:%q", errors.Here(), m.fsys,
+				"node", path, "dir", dir, "extra", extra)
+
 			m.tree.Delete(path)
 			n.tree.Insert(extra, v)
 		}
@@ -118,6 +130,8 @@ func (m *Node) split(dir string) (*Node, error) {
 }
 
 func (m *Node) Split(dir string) (*Node, error) {
+	log.Printf("%+n: %s:%q", errors.Here(), "dir", dir)
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -125,5 +139,6 @@ func (m *Node) Split(dir string) (*Node, error) {
 }
 
 func (m *Node) Stat(name string) (fs.FileInfo, error) {
+	log.Printf("%+n: %s:%q", errors.Here(), "name", name)
 	return fs.Stat(m.fsys, name)
 }

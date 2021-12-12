@@ -1,8 +1,11 @@
 package bucket
 
 import (
+	"log"
 	"sort"
 	"strings"
+
+	"go.sancus.dev/core/errors"
 )
 
 type Files []File
@@ -87,6 +90,12 @@ func (m *Bucket) Move(dir string, dest *Bucket, prefix string) {
 		} else {
 			f.Name = name
 		}
+
+		log.Printf("%+n: %s:%q %s:%v %s:%q -> %q",
+			errors.Here(),
+			"dir", dir,
+			"i", i,
+			"name", name, f.Name)
 
 		dest.Files.Append(f)
 		m.Files.Reset(i)
