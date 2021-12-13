@@ -76,16 +76,28 @@ func (fsys *Filesystem) newNode(inode uint64, typ NodeType) (Node, error) {
 	}
 }
 
-func (fsys *Filesystem) newDirectory(inode uint64) (Node, error) {
-	return fsys.newNode(inode, NodeTypeDirectory)
+func (fsys *Filesystem) newDirectory(inode uint64) (*DirectoryNode, error) {
+	if v, err := fsys.newNode(inode, NodeTypeDirectory); err != nil {
+		return nil, err
+	} else {
+		return v.(*DirectoryNode), nil
+	}
 }
 
-func (fsys *Filesystem) newFile(inode uint64) (Node, error) {
-	return fsys.newNode(inode, NodeTypeFile)
+func (fsys *Filesystem) newFile(inode uint64) (*FileNode, error) {
+	if v, err := fsys.newNode(inode, NodeTypeFile); err != nil {
+		return nil, err
+	} else {
+		return v.(*FileNode), nil
+	}
 }
 
-func (fsys *Filesystem) newArchive(inode uint64) (Node, error) {
-	return fsys.newNode(inode, NodeTypeArchive)
+func (fsys *Filesystem) newArchive(inode uint64) (*ArchiveNode, error) {
+	if v, err := fsys.newNode(inode, NodeTypeArchive); err != nil {
+		return nil, err
+	} else {
+		return v.(*ArchiveNode), nil
+	}
 }
 
 func (fsys *Filesystem) init() error {
