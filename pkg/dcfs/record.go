@@ -2,6 +2,7 @@ package dcfs
 
 import (
 	"fmt"
+	"log"
 
 	bh "github.com/timshannon/bolthold"
 )
@@ -22,6 +23,31 @@ func (record *NodeRecord) String() string {
 	return s
 }
 
+func (fsys *Filesystem) resetRecordSequence() {
+	var max uint64
+
+	// find max
+	fsys.db.ForEach(nil, func(node *NodeRecord) error {
+		if node.Inode > max {
+			max = node.Inode
+		}
+		return nil
+	})
+
+	// set NodeRecord's sequence to the maximum value found
+	tx, err := fsys.db.Bolt().Begin(true)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	bkt := tx.Bucket([]byte("NodeRecord"))
+	if err := bkt.SetSequence(max); err != nil {
+		log.Fatal(err)
+	} else {
+		tx.Commit()
+	}
+}
+
 func (fsys *Filesystem) getRecord(inode uint64) (*NodeRecord, error) {
 	node := &NodeRecord{}
 	if err := fsys.db.FindOne(node, bh.Where("Inode").Eq(inode)); err != nil {
@@ -33,17 +59,24 @@ func (fsys *Filesystem) getRecord(inode uint64) (*NodeRecord, error) {
 
 func (fsys *Filesystem) putRecord(node *NodeRecord) (uint64, error) {
 	var key interface{}
+	var auto bool
 
 	if node.Inode == 0 {
+		auto = true
 		key = bh.NextSequence()
 	} else {
 		key = node.Inode
 	}
 
-	if err := fsys.db.Insert(key, node); err != nil {
-		return 0, err
-	} else {
-		return node.Inode, nil
+	for {
+		if err := fsys.db.Insert(key, node); err == nil {
+			return node.Inode, nil
+		} else if err == bh.ErrKeyExists && auto {
+			// again
+			fsys.resetRecordSequence()
+		} else {
+			return 0, err
+		}
 	}
 }
 
