@@ -28,6 +28,10 @@ type dirinfo struct {
 	node     *DirectoryNode
 }
 
+func (fi dirinfo) String() string {
+	return fmt.Sprintf("%T:%q %s", fi, fi.basename, fi.node)
+}
+
 func (fi dirinfo) Name() string {
 	log.Printf("%+n: <%s>", errors.Here(), fi)
 	return fi.basename

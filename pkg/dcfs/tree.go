@@ -11,18 +11,18 @@ import (
 
 // Tree
 func (fsys *Filesystem) locateBest(name string) (Node, string, string, error) {
-	log.Printf("%+v: %s:%q", errors.Here(), "name", name)
+	log.Printf("%+n: %s:%q", errors.Here(), "name", name)
 
 	node := fsys.root
 	p0, p1 := "", name
 
 	for {
-		log.Printf("%+v: <%s> %s:%q %s:%q", errors.Here(), node,
+		log.Printf("%+n: <%s> %s:%q %s:%q", errors.Here(), node,
 			"p0", p0, "p1", p1)
 
 		next, s0, s1, err := node.locate(fsys, p1)
 
-		log.Printf("%+v: <%s> %s:%q %s:%q: %s", errors.Here(), next,
+		log.Printf("%+n: -> <%s> %s:%q %s:%q: %s", errors.Here(), next,
 			"s0", s0, "s1", s1, err)
 
 		if err == syscall.EAGAIN {

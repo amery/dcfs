@@ -163,8 +163,19 @@ func (fsys *Filesystem) getNode(inode uint64) (Node, error) {
 
 // compares two Nodes in the AVL tree
 func compareNode(a interface{}, b interface{}) int {
-	na := a.(Node).Inode()
-	nb := b.(Node).Inode()
+	var na, nb uint64
+
+	if n, ok := a.(Node); ok {
+		na = n.Inode()
+	} else {
+		na = a.(uint64)
+	}
+
+	if n, ok := b.(Node); ok {
+		nb = n.Inode()
+	} else {
+		nb = b.(uint64)
+	}
 
 	if na < nb {
 		return -1
