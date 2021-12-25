@@ -68,19 +68,20 @@ func (m *Scanner) Scan(ctx context.Context, fsys fs.FS, dir, name string) error 
 	}
 	defer bkt.Close()
 
-	if name != "" {
-		if fi, err := bkt.Stat(name); err != nil {
-			// invalid name
-			return err
-		} else if !fi.IsDir() {
-			// file to add
-		} else if bkt, err = bkt.Split(name); err != nil {
-			// subdir split failed
-			return err
-		} else {
-			// subdir split
-			name = ""
-		}
+	if name == "" || name == "." {
+		// recursively add everything
+		name = ""
+	} else if fi, err := bkt.Stat(name); err != nil {
+		// invalid name
+		return err
+	} else if !fi.IsDir() {
+		// file to add
+	} else if bkt, err = bkt.Split(name); err != nil {
+		// subdir split failed
+		return err
+	} else {
+		// subdir split
+		name = ""
 	}
 
 	return bkt.Add(m.ctx, name)
