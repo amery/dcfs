@@ -25,17 +25,19 @@ func (m *Scanner) splitVolume(vol, path string) (fs.FS, string, error) {
 		if err != nil {
 			return nil, "", err
 		}
-		m.vol[vol] = fsys
+		m.addVolume(fsys, vol)
 	}
 
 	// and trim path accordingly
 	if s := strings.TrimPrefix(path, root); s == "" {
 		return fsys, ".", nil
 	} else {
+		s = filepath.ToSlash(s)
 		return fsys, s, nil
 	}
 }
 
+// Split turns a OS path into volume's root fs and fs.FS friendly path.
 func (m *Scanner) SplitVolume(path string) (fs.FS, string, error) {
 
 	// absolute path
@@ -52,6 +54,7 @@ func (m *Scanner) SplitVolume(path string) (fs.FS, string, error) {
 	return m.splitVolume(vol, path)
 }
 
+// Split turns a path into volume's root fs, path to the bucket, and bucket relative path.
 func (m *Scanner) Split(path string) (fs.FS, string, string, error) {
 	// volume and absolute path
 	fsys, path, err := m.SplitVolume(path)

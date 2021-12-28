@@ -16,8 +16,8 @@ type Scanner struct {
 	cancelled uint32
 	err       error
 
-	vol  map[string]fs.FS                 // Volumes
-	data map[fs.FS]map[string]*BucketData // Buckets
+	vol  map[string]fs.FS // Volumes
+	data map[fs.FS]*Node  // Nodes
 }
 
 func NewScanner(ctx context.Context) (*Scanner, error) {
@@ -31,7 +31,7 @@ func NewScanner(ctx context.Context) (*Scanner, error) {
 		ctx:    ctx,
 		cancel: cancel,
 		vol:    make(map[string]fs.FS),
-		data:   make(map[fs.FS]map[string]*BucketData),
+		data:   make(map[fs.FS]*Node),
 	}
 
 	return m, nil
