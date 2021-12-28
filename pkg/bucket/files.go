@@ -2,6 +2,7 @@ package bucket
 
 import (
 	"sort"
+	"strings"
 )
 
 type Files []File
@@ -38,4 +39,59 @@ func (m Files) Repack() {
 	}
 
 	m = m[:n]
+}
+
+func (m *Files) Append(f File) {
+	if f.Name != "" {
+		*m = append(*m, f)
+	}
+}
+
+func (m Files) ForEach(prefix string, fn func(int, string)) {
+
+	switch {
+	case fn == nil:
+		// done
+	case prefix == "." || prefix == "":
+		// all
+		for i := range m {
+			if s := m[i].Name; s != "" {
+				fn(i, s)
+			}
+		}
+	default:
+		// within path
+		prefix += "/"
+
+		for i := range m {
+			s := m[i].Name
+			s1 := strings.TrimPrefix(s, prefix)
+			if s1 != "" && s != s1 {
+				fn(i, s1)
+			}
+		}
+	}
+}
+
+func (m *Bucket) Move(dir string, dest *Bucket, prefix string) {
+	if prefix == "." {
+		prefix = ""
+	}
+
+	m.Files.ForEach(dir, func(i int, name string) {
+
+		f := m.Files[i]
+
+		if prefix != "" {
+			f.Name = prefix + "/" + name
+		} else {
+			f.Name = name
+		}
+
+		dest.Files.Append(f)
+		m.Files.Reset(i)
+	})
+
+	m.Files.Repack()
+	dest.Files.Repack()
 }
