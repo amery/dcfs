@@ -13,7 +13,7 @@ const (
 type Bucket struct {
 	fsys     fs.FS       `yaml:"-"`
 	Metadata interface{} `yaml:",omitempty"`
-	Files    []File      `yaml:",omitempty"`
+	Files    Files       `yaml:",omitempty"`
 }
 
 func (m *Bucket) Load() error {
