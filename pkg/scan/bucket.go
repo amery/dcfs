@@ -38,7 +38,7 @@ func (m *Node) Commit() error {
 }
 
 func (m *Node) commit() error {
-	return m.bucket.Commit()
+	return m.bucket.Commit(m.fsys)
 }
 
 func (m *Node) put() *Node {

@@ -11,13 +11,12 @@ const (
 )
 
 type Bucket struct {
-	fsys     fs.FS       `yaml:"-"`
 	Metadata interface{} `yaml:",omitempty"`
 	Files    Files       `yaml:",omitempty"`
 }
 
-func (m *Bucket) Load() error {
-	buf, err := fs.ReadFile(m.fsys, BucketFileName)
+func (m *Bucket) Load(fsys fs.FS) error {
+	buf, err := fs.ReadFile(fsys, BucketFileName)
 	if err != nil {
 		return err
 	}
@@ -25,24 +24,23 @@ func (m *Bucket) Load() error {
 	return yaml.Unmarshal(buf, m)
 }
 
-func (m *Bucket) Commit() error {
+func (m *Bucket) Commit(fsys fs.FS) error {
 	buf, err := yaml.Marshal(m)
 	if err != nil {
 		return err
 	}
 
-	return fs.WriteFile(m.fsys, BucketFileName, buf, 0644)
+	return fs.WriteFile(fsys, BucketFileName, buf, 0644)
 }
 
 func New(fsys fs.FS) (*Bucket, error) {
-	m := &Bucket{
-		fsys: fsys,
-	}
 
-	err := m.Load()
+	m := &Bucket{}
+
+	err := m.Load(fsys)
 	if fs.IsNotExist(err) {
 		// attempt to create one
-		err = m.Commit()
+		err = m.Commit(fsys)
 	}
 
 	if err != nil {
